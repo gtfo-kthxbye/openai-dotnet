@@ -353,16 +353,41 @@ namespace OpenAI.Responses
                     background = prop.Value.GetBoolean();
                     continue;
                 }
-                if (prop.NameEquals("instructions"u8))
+if (prop.NameEquals("instructions"u8))
+{
+    if (prop.Value.ValueKind == JsonValueKind.Null)
+    {
+        instructions = null;
+        continue;
+    }
+    if (prop.Value.ValueKind == JsonValueKind.String)
+    {
+        instructions = prop.Value.GetString();
+    }
+    else if (prop.Value.ValueKind == JsonValueKind.Array)
+    {
+        var texts = new List<string>();
+        foreach (var instruction in prop.Value.EnumerateArray())
+        {
+            if (instruction.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var contentItem in content.EnumerateArray())
                 {
-                    if (prop.Value.ValueKind == JsonValueKind.Null)
+                    if (contentItem.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String && !string.IsNullOrEmpty(textProp.GetString()))
                     {
-                        instructions = null;
-                        continue;
+                        texts.Add(textProp.GetString());
                     }
-                    instructions = prop.Value.GetString();
-                    continue;
                 }
+            }
+        }
+        instructions = string.Join("\n\n", texts);
+    }
+    else
+    {
+        instructions = null;
+    }
+    continue;
+}
                 if (prop.NameEquals("tools"u8))
                 {
                     if (prop.Value.ValueKind == JsonValueKind.Null)
