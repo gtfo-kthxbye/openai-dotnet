@@ -35,6 +35,14 @@ namespace OpenAI.Responses
             using PipelineMessage message = CreateCreateResponseRequest(content, options);
             return ClientResult.FromResponse(Pipeline.ProcessMessage(message, options));
         }
+        public virtual OpenAIResponse MyCreateResponse(BinaryContent content, RequestOptions options = null)
+        {
+            Argument.AssertNotNull(content, nameof(content));
+
+            using PipelineMessage message = CreateCreateResponseRequest(content, options);
+            ClientResult protocolResult = ClientResult.FromResponse(Pipeline.ProcessMessage(message, options));
+            return OpenAIResponse.FromClientResult(protocolResult);
+        }
 
         public virtual async Task<ClientResult> CreateResponseAsync(BinaryContent content, RequestOptions options = null)
         {
